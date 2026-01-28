@@ -60,11 +60,18 @@ function convertObjToHTML(post) {
 }
 async function Delete(id) {
     let res = await fetch('http://localhost:3000/posts/' + id, {
-        method: "DELETE"
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            isDeleted: true
+        })
     })
+
     if (res.ok) {
         GetData()
     }
-    return false;
 }
+
 GetData();
