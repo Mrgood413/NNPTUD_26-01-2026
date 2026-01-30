@@ -62,13 +62,21 @@ async function Save() {
 
 
 function convertObjToHTML(post) {
-    return `<tr>
-    <td>${post.id}</td>
-    <td>${post.title}</td>
-    <td>${post.views}</td>
-    <td><input type='submit' value='Delete' onclick='Delete(${post.id})'></td>
-    </tr>`
+    let style = post.isDeleted ? "text-decoration: line-through; color: gray;" : "";
+
+    return `<tr style="${style}">
+        <td>${post.id}</td>
+        <td>${post.title}</td>
+        <td>${post.views}</td>
+        <td>
+            <input type='submit' value='Delete' 
+                onclick='Delete(${post.id})'
+                ${post.isDeleted ? "disabled" : ""}
+            >
+        </td>
+    </tr>`;
 }
+
 async function Delete(id) {
     let res = await fetch('http://localhost:3000/posts/' + id, {
         method: "PATCH",
@@ -84,5 +92,48 @@ async function Delete(id) {
         GetData()
     }
 }
+
+async function GetComments(postId) {
+    let res = await fetch(`http://localhost:3000/comments?postId=${postId}`);
+    return await res.json();
+}
+
+async function CreateComment(postId, text) {
+    let res = await fetch('http://localhost:3000/comments');
+    let comments = await res.json();
+
+    let maxId = 0;
+    for (let c of comments) {
+        let numId = parseInt(c.id);
+        if (numId > maxId) maxId = numId;
+    }
+
+    let newId = (maxId + 1).toString();
+
+    await fetch('http://localhost:3000/comments', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            id: newId,
+            text: text,
+            postId: postId
+        })
+    });
+}
+
+async function UpdateComment(id, text) {
+    await fetch('http://localhost:3000/comments/' + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, text })
+    });
+}
+
+async function DeleteComment(id) {
+    await fetch('http://localhost:3000/comments/' + id, {
+        method: "DELETE"
+    });
+}
+
 
 GetData();
